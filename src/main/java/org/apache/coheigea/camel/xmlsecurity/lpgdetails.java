@@ -4,7 +4,10 @@ package org.apache.coheigea.camel.xmlsecurity;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.sun.xml.txw2.annotation.XmlElement;
+
 @XmlRootElement
+
 @XmlType
 
 public class lpgdetails {

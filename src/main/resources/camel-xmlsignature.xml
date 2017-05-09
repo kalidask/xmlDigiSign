@@ -19,7 +19,8 @@
 -->
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:camel="http://camel.apache.org/schema/spring"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="     http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
     <camel:keyStoreParameters id="signatureParams"
         password="{{client.store.password}}" resource="./clientstore.jks"/>
     <camel:keyStoreParameters id="verificationParams"
@@ -50,27 +51,49 @@
     <bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+    
+ <!--    <bean id="namespaceMap" class="java.util.HashMap">
+    <argument>
+      <map>
+        <entry key="urn:example:po" value="soapenv"/>
+        
+      </map>
+    </argument>
+  </bean> -->
+  
+  <util:map id="myMap">
+  <entry key="urn:example:po" value="soap"/>
+
+</util:map>
+    
+    
     <bean class="org.apache.coheigea.camel.xmlsecurity.lpgprocessor" id="myProcessor"/>
     <camelContext id="camelContext-a5151b76-4d6f-4556-96ad-d6be7677e8d1" xmlns="http://camel.apache.org/schema/spring">
         <!-- define the camel properties placeholder, and let it leverage jasypt -->
         <propertyPlaceholder id="properties"
             location="classpath:passwords.properties" propertiesParserRef="jasypt"/>
+            
+         
+            
+            
         <dataFormats>
             <jaxb contextPath="org.apache.coheigea.camel.xmlsecurity"
-                id="myJaxb" prettyPrint="true"/>
+                 id="myJaxb"                prettyPrint="true" partNamespace="urn:example:po"/>
         </dataFormats>
         <route id="Route1">
             <from id="_from1" uri="sql:select consumer_no,account_no,dealer_no,ifsc_code, delaer_name from lpgdata?consumer.useIterator=false"/>
             <log id="_log1" message="jpa body ............${body}"/>
             <process id="_process1" ref="myProcessor"/>
-            <marshal id="_marshal1" ref="myJaxb"/>
+            <marshal id="_marshal1" ref="myJaxb" />
             <convertBodyTo id="_convertBodyTo1" type="java.lang.String"/>
-            <to id="_to1" uri="file:src/main/resources/data"/>
+            <to id="_to1" uri="file:src/main/resources/data?fileName=out.xml"/>
+            <stop id="_stop1"/>
         </route>
         <route id="Route2">
-            <!--  <to id="_to2" uri="xmlsecurity:sign://enveloped?keyAccessor=#signatureAccessor&amp;parentLocalName=lpgdetails&amp;parentNamespace=urn:example:po"/>  -->
+              
             <from id="_from2" uri="file:src/main/resources/data?noop=true"/>
-            <to id="_to2" uri="xmlsecurity:sign://enveloping?keyAccessor=#signatureAccessor"/>
+            <!--  <to id="_to2" uri="xmlsecurity:sign://enveloped?keyAccessor=#signatureAccessor&amp;parentLocalName=lpgdetails&amp;parentNamespace=urn:example:po"/> -->
+             <to id="_to2" uri="xmlsecurity:sign://enveloping?keyAccessor=#signatureAccessor&amp;signatureAlgorithm=http://www.w3.org/2001/04/xmldsig-more#rsa-sha256&amp;transformMethods=http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>  
             <to id="_to21" uri="file:target/signed-data?fileName=${file:name}.signed"/>
         </route>
         <route id="Route3">
