@@ -41,19 +41,42 @@
         <property name="alias" value="myclientkey"/>
         <property name="keyStoreParameters" ref="verificationParams"/>
     </bean>
+    <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/lpgdetails"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+    <bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <bean class="org.apache.coheigea.camel.xmlsecurity.lpgprocessor" id="myProcessor"/>
     <camelContext id="camelContext-a5151b76-4d6f-4556-96ad-d6be7677e8d1" xmlns="http://camel.apache.org/schema/spring">
         <!-- define the camel properties placeholder, and let it leverage jasypt -->
         <propertyPlaceholder id="properties"
             location="classpath:passwords.properties" propertiesParserRef="jasypt"/>
-        <route id="_route9">
-            <from id="_from1" uri="file:src/main/resources/data?noop=true"/>
-            <to id="_to1" uri="xmlsecurity:sign://enveloped?keyAccessor=#signatureAccessor&amp;parentLocalName=PaymentInfo&amp;parentNamespace=urn:example:po"/>
-            <to id="_to2" uri="file:target/signed-data?fileName=${file:name}.signed"/>
+        <dataFormats>
+            <jaxb contextPath="org.apache.coheigea.camel.xmlsecurity"
+                id="myJaxb" prettyPrint="true"/>
+        </dataFormats>
+        <route id="Route1">
+            <from id="_from1" uri="sql:select consumer_no,account_no,dealer_no,ifsc_code, delaer_name from lpgdata?consumer.useIterator=false"/>
+            <log id="_log1" message="jpa body ............${body}"/>
+            <process id="_process1" ref="myProcessor"/>
+            <marshal id="_marshal1" ref="myJaxb"/>
+            <convertBodyTo id="_convertBodyTo1" type="java.lang.String"/>
+            <to id="_to1" uri="file:src/main/resources/data"/>
         </route>
-        <route id="_route10">
-            <from id="_from2" uri="file:target/signed-data?noop=true"/>
-            <to id="_to3" uri="xmlsecurity:verify://enveloped?keySelector=#verificationSelector"/>
-            <to id="_to4" uri="file:target/verified-data?fileName=${file:name.noext}.verified"/>
+        <route id="Route2">
+            <!--  <to id="_to2" uri="xmlsecurity:sign://enveloped?keyAccessor=#signatureAccessor&amp;parentLocalName=lpgdetails&amp;parentNamespace=urn:example:po"/>  -->
+            <from id="_from2" uri="file:src/main/resources/data?noop=true"/>
+            <to id="_to2" uri="xmlsecurity:sign://enveloping?keyAccessor=#signatureAccessor"/>
+            <to id="_to21" uri="file:target/signed-data?fileName=${file:name}.signed"/>
+        </route>
+        <route id="Route3">
+            <from id="_from3" uri="file:target/signed-data?noop=true"/>
+            <to id="_to31" uri="xmlsecurity:verify://enveloped?keySelector=#verificationSelector"/>
+            <to id="_to32" uri="file:target/verified-data?fileName=${file:name.noext}.verified"/>
         </route>
     </camelContext>
 </beans>
