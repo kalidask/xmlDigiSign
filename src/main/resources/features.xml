@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<features name="myrepostiories">
+    <feature name="my-repo">
+        <bundle>wrap:mvn:mysql/mysql-connector-java/5.1.6</bundle>
+        <bundle>mvn:org.apache.camel/camel-xmlsecurity/2.15.1.redhat-620133</bundle>
+        <bundle>mvn:commons-pool/commons-pool/1.4</bundle>
+        <bundle>mvn:commons-logging/commons-logging/1.2</bundle>
+        <bundle>mvn:org.jasypt/jasypt/1.9.3.redhat_3</bundle>
+    <feature version="2.15.1.redhat-620133">camel-core</feature>
+    <feature version="2.15.1.redhat-620133">camel-spring</feature>
+    <feature version="2.15.1.redhat-620133">camel-xmlsecurity</feature>
+    <feature version="2.15.1.redhat-620133">camel-jasypt</feature>
+    <feature version="2.15.1.redhat-620133">camel-ftp</feature>
+    <feature version="2.15.1.redhat-620133">camel-sql</feature>
+    <feature version="2.15.1.redhat-620133">camel-jaxb</feature>
+    <feature version="2.15.1.redhat-620133">camel-jdbc</feature>
+    </feature>
+</features>

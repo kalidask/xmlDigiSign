@@ -1,47 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
- Licensed to the Apache Software Foundation (ASF) under one
- or more contributor license agreements. See the NOTICE file
- distributed with this work for additional information
- regarding copyright ownership. The ASF licenses this file
- to you under the Apache License, Version 2.0 (the
- "License"); you may not use this file except in compliance
- with the License. You may obtain a copy of the License at
- 
- http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing,
- software distributed under the License is distributed on an
- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- KIND, either express or implied. See the License for the
- specific language governing permissions and limitations
- under the License.
--->
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:camel="http://camel.apache.org/schema/spring"
     xmlns:util="http://www.springframework.org/schema/util"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="     http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
     <camel:keyStoreParameters id="signatureParams"
-        password="{{client.store.password}}" resource="./clientstore.jks"/>
-    <camel:keyStoreParameters id="verificationParams"
-        password="{{service.store.password}}" resource="./servicestore.jks"/>
+        password="{{client.store.password}}" resource="./sonawaneug-S3.pfx"/>
+    <!--   <camel:keyStoreParameters id="verificationParams"
+        password="{{service.store.password}}" resource="./servicestore.jks"/> -->
     <bean
         class="org.apache.camel.component.jasypt.JasyptPropertiesParser" id="jasypt">
-        <!-- password is mandatory, you can prefix it with sysenv: or sys: to indicate it should use
-         an OS environment or JVM system property value, so you dont have the master password defined here -->
+        <!-- password is mandatory, you can prefix it with sysenv: or sys: to indicate 
+			it should use an OS environment or JVM system property value, so you dont 
+			have the master password defined here -->
         <property name="password" value="master-secret"/>
     </bean>
     <bean
         class="org.apache.camel.component.xmlsecurity.api.DefaultKeyAccessor" id="signatureAccessor">
-        <property name="alias" value="myclientkey"/>
+        <property name="alias" value="f8b710cc6fde5d7d964a547bf9e6705b_2ba4f7cc-a236-4be4-93cf-0fd4114eab45"/>
         <property name="password" value="{{client.key.password}}"/>
         <property name="keyStoreParameters" ref="signatureParams"/>
     </bean>
-    <bean
+    <!-- <bean
         class="org.apache.camel.component.xmlsecurity.api.DefaultKeySelector" id="verificationSelector">
         <property name="alias" value="myclientkey"/>
         <property name="keyStoreParameters" ref="verificationParams"/>
-    </bean>
+    </bean> -->
     <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
         <property name="url" value="jdbc:mysql://localhost:3306/lpgdetails"/>
@@ -51,17 +34,6 @@
     <bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
         <property name="dataSource" ref="dataSource"/>
     </bean>
-    <!--    <bean id="namespaceMap" class="java.util.HashMap">
-    <argument>
-      <map>
-        <entry key="urn:example:po" value="soapenv"/>
-        
-      </map>
-    </argument>
-  </bean> -->
-    <util:map id="myMap">
-        <entry key="urn:example:po" value="soap"/>
-    </util:map>
     <bean class="org.apache.coheigea.camel.xmlsecurity.lpgprocessor" id="myProcessor"/>
     <camelContext id="camelContext-a5151b76-4d6f-4556-96ad-d6be7677e8d1" xmlns="http://camel.apache.org/schema/spring">
         <!-- define the camel properties placeholder, and let it leverage jasypt -->
@@ -71,8 +43,9 @@
             <jaxb contextPath="org.apache.coheigea.camel.xmlsecurity"
                 id="myJaxb" partNamespace="urn:example:po" prettyPrint="true"/>
         </dataFormats>
-        <route id="Route1">
-            <from id="_from1" uri="sql:select consumer_no,account_no,dealer_no,ifsc_code, delaer_name from lpgdata?consumer.useIterator=false"/>
+        <route id="Route1_InsertQry">
+            <from id="_to7" uri="timer:Sqltime?period=30s"/>
+            <to id="_from1" uri="sql:select consumer_no,account_no,dealer_no,ifsc_code, delaer_name from lpgdata?consumer.useIterator=false"/>
             <log id="_log1" message="jpa body ............${body}"/>
             <process id="_process1" ref="myProcessor"/>
             <marshal id="_marshal1" ref="myJaxb"/>
@@ -80,24 +53,34 @@
             <to id="_to1" uri="file:src/main/resources/data?fileName=out.xml"/>
             <stop id="_stop1"/>
         </route>
-        <route id="Route2">
-            <!--  <to id="_to2" uri="xmlsecurity:sign://enveloped?keyAccessor=#signatureAccessor&amp;parentLocalName=lpgdetails&amp;parentNamespace=urn:example:po"/> -->
+        <route id="Route2_digSigner">
             <from id="_from2" uri="file:src/main/resources/data?noop=true"/>
             <to id="_to2" uri="xmlsecurity:sign://enveloping?keyAccessor=#signatureAccessor&amp;signatureAlgorithm=http://www.w3.org/2001/04/xmldsig-more#rsa-sha256&amp;transformMethods=http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
             <to id="_to21" uri="file:target/signed-data?fileName=${file:name}.signed"/>
+            <to id="_to5" uri="direct:Route3"/>
         </route>
-      <!--   <route id="Route3">
-            <from id="_from3" uri="file:target/signed-data?noop=true"/>
-            <to id="_to31" uri="xmlsecurity:verify://enveloped?keySelector=#verificationSelector"/>
-            <to id="_to32" uri="file:target/verified-data?fileName=${file:name.noext}.verified"/>
+        <!-- <route id="Route3"> <from id="_from3" uri="file:target/signed-data?noop=true"/> 
+			<to id="_to31" uri="xmlsecurity:verify://enveloped?keySelector=#verificationSelector"/> 
+			<to id="_to32" uri="file:target/verified-data?fileName=${file:name.noext}.verified"/> 
+			</route> -->
+        <route id="Route3">
+            <from id="_from5" uri="direct:Route3"/>
+            <setHeader headerName="from" id="_setHeader1">
+                <simple>kalidas@taashee.com</simple>
+            </setHeader>
+            <setHeader headerName="to" id="_setHeader2">
+                <simple>kalidas@taashee.com</simple>
+            </setHeader>
+            <setHeader headerName="subject" id="_setHeader3">
+                <constant>Hello</constant>
+            </setHeader>
+            <to id="_from3" uri="smtps://smtp.gmail.com:465?username=kalidas@taashee.com&amp;password=xxxxxxxx"/>
         </route>
- 
- 
-  -->
-        <route id="Route4">
+        <route id="Route4_Ftp">
             <from id="_from4" uri="file:target/signed-data?noop=true"/>
             <to id="_to3" uri="sftp:root@kalidas.jbossmum.com?password=redhat"/>
             <log id="_log2" message="files send  route completed"/>
+            <to id="_to6" uri="controlbus:route?routeId=Route4_Ftp&amp;action=stop&amp;async=true"/>
         </route>
     </camelContext>
 </beans>

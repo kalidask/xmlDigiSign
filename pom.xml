@@ -16,9 +16,9 @@
     </license>
   </licenses>
   <properties>
-    <camel.version>2.17.0.redhat-630224</camel.version>
-    <version.maven-bundle-plugin>3.2.0</version.maven-bundle-plugin>
+    <camel.version>2.15.1.redhat-620133</camel.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <version.maven-bundle-plugin>3.2.0</version.maven-bundle-plugin>
     <jboss.fuse.bom.version>6.3.0.redhat-224</jboss.fuse.bom.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -35,24 +35,8 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-spring</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-xmlsecurity</artifactId>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-jasypt</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-logging</groupId>
@@ -64,37 +48,71 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-pool</groupId>
+      <artifactId>commons-pool</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.6</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.camel</groupId>
-      <artifactId>camel-test</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>commons-dbcp</groupId>
-    	<artifactId>commons-dbcp</artifactId>
-    </dependency>
-    <dependency>
-    	<groupId>commons-pool</groupId>
-    	<artifactId>commons-pool</artifactId>
-    	<version>1.4</version>
+      <artifactId>camel-ftp</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
     	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-sql</artifactId>
-    	<version>2.17.0</version>
+    	<artifactId>camel-mail</artifactId>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
     </dependency>
     <dependency>
     	<groupId>org.apache.camel</groupId>
     	<artifactId>camel-jaxb</artifactId>
-    	<version>2.17.0</version>
-    </dependency>
-    <dependency>
-    	<groupId>mysql</groupId>
-    	<artifactId>mysql-connector-java</artifactId>
-    	<version>5.1.6</version>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
     </dependency>
     <dependency>
     	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-ftp</artifactId>
-    	<version>2.17.0</version>
+    	<artifactId>camel-sql</artifactId>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-jasypt</artifactId>
+    	<version>2.15.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-test</artifactId>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-xmlsecurity</artifactId>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-spring</artifactId>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-core</artifactId>
+    	<version>2.15.1</version>
+    	<type>bundle</type>
     </dependency>
   </dependencies>
   <repositories>
@@ -217,11 +235,6 @@
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <systemPropertyVariables>
-            <PASSWORD>master-secret</PASSWORD>
-          </systemPropertyVariables>
-        </configuration>
       </plugin>
     </plugins>
   </build>

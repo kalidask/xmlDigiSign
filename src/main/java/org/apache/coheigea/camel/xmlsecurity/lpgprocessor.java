@@ -43,6 +43,8 @@ lpglist dplist = new lpglist();
             
             dplist.getlpgdetail().add(article);
         }
+        
+        
         exchange.getOut().setBody(dplist);
     
 		
