@@ -28,8 +28,8 @@ public class XMLSignatureTest extends org.junit.Assert {
     public void testXMLSignature() throws Exception {
         // Start up the Camel route
         Main main = new Main();
-       // main.setApplicationContextUri("/META-INF/spring/camel-xmlsignature.xml");
-        main.setApplicationContextUri("camel-xmlsignature.xml");
+        main.setApplicationContextUri("/META-INF/spring/camel-xmlsignature.xml");
+        //main.setApplicationContextUri("camel-xmlsignature.xml");
         main.start();
         
         // Sleep to allow time to copy the files etc.

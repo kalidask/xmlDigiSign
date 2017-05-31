@@ -7,7 +7,7 @@
   <version>1.0</version>
   <packaging>bundle</packaging>
   <name>Camel Spring Quickstart</name>
-  <description>Empty Camel Spring Example</description>
+  <description>DBTL Processing</description>
   <licenses>
     <license>
       <name>Apache License, Version 2.0</name>
@@ -19,7 +19,7 @@
     <camel.version>2.15.1.redhat-620133</camel.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <version.maven-bundle-plugin>3.2.0</version.maven-bundle-plugin>
-    <jboss.fuse.bom.version>6.3.0.redhat-224</jboss.fuse.bom.version>
+    <jboss.fuse.bom.version>6.2.0.redhat-133</jboss.fuse.bom.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <dependencyManagement>
@@ -34,23 +34,6 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-jdk14</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-dbcp</groupId>
-      <artifactId>commons-dbcp</artifactId>
-    </dependency>
     <dependency>
       <groupId>commons-pool</groupId>
       <artifactId>commons-pool</artifactId>
@@ -68,51 +51,77 @@
       <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-mail</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-mail</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-jaxb</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jaxb</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-sql</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-sql</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-jasypt</artifactId>
-    	<version>2.15.1</version>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-xmlsecurity</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-test</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-spring</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-xmlsecurity</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-core</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-spring</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+      <version>1.4</version>
     </dependency>
     <dependency>
-    	<groupId>org.apache.camel</groupId>
-    	<artifactId>camel-core</artifactId>
-    	<version>2.15.1</version>
-    	<type>bundle</type>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-test-spring</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jasypt</artifactId>
+      <version>2.15.1</version>
+      <type>bundle</type>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-dozer</artifactId>
+      <version>2.15.1.redhat-621084</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-sap-netweaver</artifactId>
+      <version>2.15.1.redhat-621084</version>
     </dependency>
   </dependencies>
   <repositories>
@@ -169,34 +178,6 @@
   </pluginRepositories>
   <build>
     <defaultGoal>install</defaultGoal>
-    <resources>
-      <resource>
-        <directory>src/main/java</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <includes>
-          <include>**/*</include>
-        </includes>
-      </resource>
-    </resources>
-    <testResources>
-      <testResource>
-        <directory>src/test/java</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
-      </testResource>
-      <testResource>
-        <directory>src/test/resources</directory>
-        <includes>
-          <include>**/*</include>
-        </includes>
-      </testResource>
-    </testResources>
     <plugins>
       <plugin>
         <groupId>org.apache.felix</groupId>
@@ -205,8 +186,9 @@
         <extensions>true</extensions>
         <configuration>
           <instructions>
+            <Export-Package>org.apache.coheigea.camel.xmlsecurity.lpgprocessor</Export-Package>
             <Bundle-SymbolicName>testFuse</Bundle-SymbolicName>
-            <Bundle-Name>Empty Camel Spring Example [testFuse]</Bundle-Name>
+            <Bundle-Name>DigitalSigning Process</Bundle-Name>
           </instructions>
         </configuration>
       </plugin>
@@ -221,6 +203,26 @@
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>/KVM/JBossFuse/openshift/testFuse/target/classes/org/apache/coheigea/camel/xmlsecurity</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>/KVM/JBossFuse/openshift/testFuse/src/main/java/org/apache/coheigea/camel/xmlsecurity</directory>
+                  <includes>
+                    <include>jaxb.index</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
         <configuration>
           <encoding>UTF-8</encoding>
         </configuration>
@@ -230,11 +232,8 @@
         <artifactId>camel-maven-plugin</artifactId>
         <version>${camel.version}</version>
         <configuration>
-          <fileApplicationContextUri>src/main/resources/camel-xmlsignature.xml</fileApplicationContextUri>
+          <fileApplicationContextUri>src/main/resources/META-INF/spring/camel-xmlsignature.xml</fileApplicationContextUri>
         </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
