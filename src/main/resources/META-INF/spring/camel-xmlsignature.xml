@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:camel="http://camel.apache.org/schema/spring"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="     http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+    <camel:keyStoreParameters id="signatureParams"
+        password="{{client.store.password}}" resource="./sonawaneug-S3.pfx"/>
+    <bean
+        class="org.apache.camel.component.jasypt.JasyptPropertiesParser" id="jasypt">
+        <property name="password" value="master-secret"/>
+    </bean>
+    <bean
+        class="org.apache.camel.component.xmlsecurity.api.DefaultKeyAccessor" id="signatureAccessor">
+        <property name="alias" value="f8b710cc6fde5d7d964a547bf9e6705b_2ba4f7cc-a236-4be4-93cf-0fd4114eab45"/>
+        <property name="password" value="{{client.key.password}}"/>
+        <property name="keyStoreParameters" ref="signatureParams"/>
+    </bean>
+    <bean class="org.apache.commons.dbcp.BasicDataSource" id="dataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/lpgdetails"/>
+        <property name="username" value="root"/>
+        <property name="password" value="root"/>
+    </bean>
+    <bean class="org.apache.camel.component.sql.SqlComponent" id="sql">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <bean class="org.apache.coheigea.camel.xmlsecurity.lpgprocessor" id="myProcessor"/>
+    <bean class="org.apache.coheigea.camel.xmlsecurity.LpgWrapper" id="LpgWrapper"/>
+    <camelContext id="DigSigning_Process" trace="true" xmlns="http://camel.apache.org/schema/spring">
+        <!-- define the camel properties placeholder, and let it leverage jasypt -->
+        <propertyPlaceholder id="properties"
+            location="classpath:passwords.properties" propertiesParserRef="jasypt"/>
+        <dataFormats>
+            <jaxb contextPath="org.apache.coheigea.camel.xmlsecurity"
+                filterNonXmlChars="true" id="myJaxb" prettyPrint="true"/>
+        </dataFormats>
+        <route id="Route1_InsertQry">
+            <from id="_to7" uri="timer:Sqltime?period=90s"/>
+            <to id="_from1" uri="sql:select consumer_no,account_no,dealer_no,ifsc_code, dealer_name, batchstatus, amount , batchId from lpgdata?consumer.useIterator=false?useIterator=false?useIterator=false"/>
+            <split id="_split1">
+                <simple>${body}</simple>
+                <setHeader headerName="accountno" id="_setHeader1">
+                    <simple>${body[account_no]}</simple>
+                </setHeader>
+                <setHeader headerName="batchstatus" id="_setHeader2">
+                    <simple>${body[batchstatus]}</simple>
+                </setHeader>
+                <setHeader headerName="amount" id="_setHeader3">
+                    <simple>${body[amount]}</simple>
+                </setHeader>
+                <setHeader headerName="batchId" id="_setHeader4">
+                    <simple>${body[batchId]}</simple>
+                </setHeader>
+                <log id="_log2" message="process status:--------------${body}"/>
+                <choice id="Validation_choice1">
+                    <when id="_when1">
+                        <simple>${header.batchstatus} != 4 </simple>
+                        <!-- <to id="_to1" uri="sql:update lpgdata set batchstatus = 2 where account_no = :#accountno"/> -->
+                        <setBody id="_setBody1">
+                            <simple>&lt;lpg_subsidy_data&gt;&lt;data&gt; ${header.batchId}    1    batchstatus is not approved &lt;/data&gt;&lt;/lpg_subsidy_data&gt;</simple>
+                        </setBody>
+                        <marshal id="_marshal1" ref="myJaxb"/>
+                        <to id="_to1" uri="file:/opt/data?fileName=batch.xml"/>
+                        <log id="_log4" message="bacthstatus failed.......${body}"/>
+                    </when>
+                    <when id="_when2">
+                        <simple>${header.amount} &gt; 5000</simple>
+                        <setBody id="_setBody2">
+                            <simple>&lt;lpg_subsidy_data&gt;&lt;data&gt; ${header.batchId}    1    Amount is less than 5000  &lt;/data&gt;&lt;/lpg_subsidy_data&gt;</simple>
+                        </setBody>
+                        <marshal id="_marshal2" ref="myJaxb"/>
+                        <to id="_to2" uri="file:/opt/data?fileName=amt.xml"/>
+                        <log id="_log5" message="amount is less than 5k.....${body}"/>
+                    </when>
+                    <otherwise id="_otherwise1">
+                        <!--  <to id="_to1" uri="sql:update lpgdata set batchstatus = 5 where account_no = :#accountno"/> -->
+                        <log id="_log3" message="record already processed.................. ${body}"/>
+                    </otherwise>
+                </choice>
+            </split>
+            <log id="_log1" message="jpa body ............${body}.........${header.accountno}"/>
+            <!--     <process id="_process1" ref="myProcessor"/> -->
+        </route>
+
+    </camelContext>
+</beans>
