@@ -26,7 +26,7 @@
     </bean>
     <bean class="org.apache.coheigea.camel.xmlsecurity.lpgprocessor" id="myProcessor"/>
     <bean class="org.apache.coheigea.camel.xmlsecurity.LpgWrapper" id="LpgWrapper"/>
-    <camelContext id="DigSigning_Process" trace="true" xmlns="http://camel.apache.org/schema/spring">
+    <camelContext id="DigSigning_Process" trace="false" xmlns="http://camel.apache.org/schema/spring">
         <!-- define the camel properties placeholder, and let it leverage jasypt -->
         <propertyPlaceholder id="properties"
             location="classpath:passwords.properties" propertiesParserRef="jasypt"/>
@@ -62,9 +62,12 @@
                         <marshal id="_marshal1" ref="myJaxb"/>
                         <to id="_to1" uri="file:/opt/data?fileName=batch.xml"/>
                         <log id="_log4" message="bacthstatus failed.......${body}"/>
+                        <pipeline id="_pipeline1">
+                            <to id="_to3" uri="direct:email"/>
+                        </pipeline>
                     </when>
                     <when id="_when2">
-                        <simple>${header.amount} &gt; 5000</simple>
+                        <simple>${header.amount} &lt; 5000</simple>
                         <setBody id="_setBody2">
                             <simple>&lt;lpg_subsidy_data&gt;&lt;data&gt; ${header.batchId}    1    Amount is less than 5000  &lt;/data&gt;&lt;/lpg_subsidy_data&gt;</simple>
                         </setBody>
@@ -78,9 +81,30 @@
                     </otherwise>
                 </choice>
             </split>
-            <log id="_log1" message="jpa body ............${body}.........${header.accountno}"/>
-            <!--     <process id="_process1" ref="myProcessor"/> -->
+                    <log id="_log1" message="jpa body ............${body}.........${header.accountno}"/>
+            
         </route>
-
+        <route id="Email_route">
+            <from id="_from2" uri="direct:email"/>
+            <doTry id="_doTry1">
+                <setHeader headerName="from" id="_setHeader7">
+                    <simple>kalidas@taashee.com</simple>
+                </setHeader>
+                <setHeader headerName="to" id="_setHeader5">
+                    <simple>kalidas@taashee.com</simple>
+                </setHeader>
+                <setHeader headerName="subject" id="_setHeader6">
+                    <constant>Hello</constant>
+                </setHeader>
+                <to id="_from3" uri="smtps://smtp.gmail.com:465?username=kalidas@taashee.com&amp;password=xxxxxxxxxxx"/>
+                <doCatch id="_doCatch1">
+                    <exception>java.lang.Exception</exception>
+                </doCatch>
+                <doFinally id="_doFinally1">
+                    <log id="_log7" message="Mail sent successfully............."/>
+                </doFinally>
+            </doTry>
+            <to id="_to5" uri="sql:update lpgdata set batchstatus = 2 where account_no = :#accountno"/>
+        </route>
     </camelContext>
 </beans>
