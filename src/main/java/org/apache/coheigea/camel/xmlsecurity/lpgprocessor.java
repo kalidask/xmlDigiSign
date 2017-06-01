@@ -23,7 +23,7 @@ public class lpgprocessor implements Processor {
 		// TODO Auto-generated method stub
 
 		List<?> rows = exchange.getIn().getBody(List.class);
-		// System.out.println("Processing " + exchange.getIn().getBody());
+		 System.out.println("Processing " + exchange.getIn().getBody());
 
 		try {
 

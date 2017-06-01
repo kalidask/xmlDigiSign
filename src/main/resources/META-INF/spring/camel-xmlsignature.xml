@@ -26,6 +26,8 @@
     </bean>
     <bean class="org.apache.coheigea.camel.xmlsecurity.lpgprocessor" id="myProcessor"/>
     <bean class="org.apache.coheigea.camel.xmlsecurity.LpgWrapper" id="LpgWrapper"/>
+    <bean
+        class="org.apache.coheigea.camel.xmlsecurity.myOrderAggregatorStrategy" id="myOrderAggregatorStrategy"/>
     <camelContext id="DigSigning_Process" trace="false" xmlns="http://camel.apache.org/schema/spring">
         <!-- define the camel properties placeholder, and let it leverage jasypt -->
         <propertyPlaceholder id="properties"
@@ -51,11 +53,11 @@
                 <setHeader headerName="batchId" id="_setHeader4">
                     <simple>${body[batchId]}</simple>
                 </setHeader>
-                <log id="_log2" message="process status:--------------${body}"/>
                 <choice id="Validation_choice1">
                     <when id="_when1">
                         <simple>${header.batchstatus} != 4 </simple>
-                        <!-- <to id="_to1" uri="sql:update lpgdata set batchstatus = 2 where account_no = :#accountno"/> -->
+                        <!-- <to id="_to1" uri="sql:update lpgdata set batchstatus = 2 where 
+							account_no = :#accountno"/> -->
                         <setBody id="_setBody1">
                             <simple>&lt;lpg_subsidy_data&gt;&lt;data&gt; ${header.batchId}    1    batchstatus is not approved &lt;/data&gt;&lt;/lpg_subsidy_data&gt;</simple>
                         </setBody>
@@ -74,15 +76,26 @@
                         <marshal id="_marshal2" ref="myJaxb"/>
                         <to id="_to2" uri="file:/opt/data?fileName=amt.xml"/>
                         <log id="_log5" message="amount is less than 5k.....${body}"/>
+                        <pipeline id="_pipeline1">
+                            <to id="_to3" uri="direct:email"/>
+                        </pipeline>
                     </when>
                     <otherwise id="_otherwise1">
-                        <!--  <to id="_to1" uri="sql:update lpgdata set batchstatus = 5 where account_no = :#accountno"/> -->
+                        <!-- <to id="_to1" uri="sql:update lpgdata set batchstatus = 5 where 
+							account_no = :#accountno"/> -->
+                        <aggregate completionTimeout="1000"
+                            id="_aggregate1" strategyRef="myOrderAggregatorStrategy">
+                            <correlationExpression>
+                                <constant>true</constant>
+                            </correlationExpression>
+                            <log id="_log9" message="aggregate body.................. ${body}"/>
+                            <process id="_process1" ref="myProcessor"/>
+                        </aggregate>
                         <log id="_log3" message="record already processed.................. ${body}"/>
                     </otherwise>
                 </choice>
             </split>
-                    <log id="_log1" message="jpa body ............${body}.........${header.accountno}"/>
-            
+            <log id="_log1" message="jpa body ............${body}.........${header.accountno}"/>
         </route>
         <route id="Email_route">
             <from id="_from2" uri="direct:email"/>
@@ -105,6 +118,11 @@
                 </doFinally>
             </doTry>
             <to id="_to5" uri="sql:update lpgdata set batchstatus = 2 where account_no = :#accountno"/>
+        </route>
+        <route id="XmlDigSigning_Route">
+            <from id="_to6" uri="file:/opt/data?noop=true"/>
+            <to id="_to8" uri="xmlsecurity:sign://enveloping?omitXmlDeclaration=true&amp;signatureAlgorithm=http://www.w3.org/2001/04/xmldsig-more#rsa-sha256&amp;transformMethods=http://www.w3.org/2000/09/xmldsig#enveloped-signature&amp;prefixForXmlSignatureNamespace=&amp;keyAccessor=#signatureAccessor"/>
+            <to id="_to9" uri="file:/opt/signed-data?fileName=${file:name}.signed"/>
         </route>
     </camelContext>
 </beans>
