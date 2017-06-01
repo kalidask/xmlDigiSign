@@ -91,11 +91,9 @@
                             <log id="_log9" message="aggregate body.................. ${body}"/>
                             <process id="_process1" ref="myProcessor"/>
                         </aggregate>
-                        <log id="_log3" message="record already processed.................. ${body}"/>
                     </otherwise>
                 </choice>
             </split>
-            <log id="_log1" message="jpa body ............${body}.........${header.accountno}"/>
         </route>
         <route id="Email_route">
             <from id="_from2" uri="direct:email"/>
@@ -123,6 +121,14 @@
             <from id="_to6" uri="file:/opt/data?noop=true"/>
             <to id="_to8" uri="xmlsecurity:sign://enveloping?omitXmlDeclaration=true&amp;signatureAlgorithm=http://www.w3.org/2001/04/xmldsig-more#rsa-sha256&amp;transformMethods=http://www.w3.org/2000/09/xmldsig#enveloped-signature&amp;prefixForXmlSignatureNamespace=&amp;keyAccessor=#signatureAccessor"/>
             <to id="_to9" uri="file:/opt/signed-data?fileName=${file:name}.signed"/>
+        </route>
+        
+        <route id="Ftp_Route">
+          <from  uri="file:/opt/signed-data?noop=true"/>
+            <to  uri="sftp:root@kalidas.jbossmum.com?password=redhat"/>
+            <log  message="files transfered  completed"/>
+            <to  uri="controlbus:route?routeId=Route4_Ftp&amp;action=stop&amp;async=true"/>
+        
         </route>
     </camelContext>
 </beans>
