@@ -91,6 +91,7 @@
                             <log id="_log9" message="aggregate body.................. ${body}"/>
                             <process id="_process1" ref="myProcessor"/>
                         </aggregate>
+                        <to  uri="sql:update lpgdata set batchstatus = 2 where account_no = :#accountno"/>
                     </otherwise>
                 </choice>
             </split>
@@ -115,20 +116,18 @@
                     <log id="_log7" message="Mail sent successfully............."/>
                 </doFinally>
             </doTry>
-            <to id="_to5" uri="sql:update lpgdata set batchstatus = 2 where account_no = :#accountno"/>
+            <to id="_to5" uri="sql:update lpgdata set batchstatus = 5 where account_no = :#accountno"/>
         </route>
         <route id="XmlDigSigning_Route">
             <from id="_to6" uri="file:/opt/data?noop=true"/>
             <to id="_to8" uri="xmlsecurity:sign://enveloping?omitXmlDeclaration=true&amp;signatureAlgorithm=http://www.w3.org/2001/04/xmldsig-more#rsa-sha256&amp;transformMethods=http://www.w3.org/2000/09/xmldsig#enveloped-signature&amp;prefixForXmlSignatureNamespace=&amp;keyAccessor=#signatureAccessor"/>
             <to id="_to9" uri="file:/opt/signed-data?fileName=${file:name}.signed"/>
         </route>
-        
         <route id="Ftp_Route">
-          <from  uri="file:/opt/signed-data?noop=true"/>
-            <to  uri="sftp:root@kalidas.jbossmum.com?password=redhat"/>
-            <log  message="files transfered  completed"/>
-            <to  uri="controlbus:route?routeId=Route4_Ftp&amp;action=stop&amp;async=true"/>
-        
+            <from id="_from4" uri="file:/opt/signed-data"/>
+            <to id="_to4" uri="sftp:root@kalidas.jbossmum.com?password=redhat"/>
+            <log id="_log1" message="files transfered  completed"/>
+            <to id="_to10" uri="controlbus:route?routeId=Route4_Ftp&amp;action=stop&amp;async=true"/>
         </route>
     </camelContext>
 </beans>
